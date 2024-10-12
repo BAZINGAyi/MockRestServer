@@ -1,0 +1,36 @@
+# 使用官方 Node.js 镜像作为基础镜像，并指定版本
+FROM node:20.18.0
+
+ENV MY_PROXY_URL="http://xxxx.com:80/"
+#ENV MY_PROXY_URL="http://173.39.112.117:80"
+ENV HTTP_PROXY=$MY_PROXY_URL \
+    HTTPS_PROXY=$MY_PROXY_URL \
+    FTP_PROXY=$MY_PROXY_URL \
+    http_proxy=$MY_PROXY_URL \
+    https_proxy=$MY_PROXY_URL \
+    ftp_proxy=$MY_PROXY_URL
+
+# 设置工作目录
+WORKDIR /usr/src/app
+
+# 复制 package.json 和 package-lock.json
+COPY ./package.json ./
+COPY ./package-lock.json ./
+
+
+# 安装项目依赖
+RUN npm install -g npm@10.9.0 && npm install && npm list --depth=0
+
+ENV MY_PROXY_URL=
+ENV HTTP_PROXY=$MY_PROXY_URL \
+    HTTPS_PROXY=$MY_PROXY_URL \
+    FTP_PROXY=$MY_PROXY_URL \
+    http_proxy=$MY_PROXY_URL \
+    https_proxy=$MY_PROXY_URL \
+    ftp_proxy=$MY_PROXY_URL
+
+# 暴露应用运行的端口
+EXPOSE 3000
+
+# 启动应用
+CMD ["node", "app.js"]

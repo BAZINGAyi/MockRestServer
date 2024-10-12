@@ -25,6 +25,7 @@
 │   ├── apiController.js                    # 处理 API 配置相关的请求，如创建、读取、更新和删除 API
 │   └── apiPropertyController.js            # 处理 API 属性配置相关的请求，如创建、读取、更新和删除 API 属性
 ├── docs/
+
 │   ├── init_db.sql                         # 初始化数据库的 SQL 脚本
 ├── frontend/
 │   ├── babel.config.js                     # Babel 配置文件，用于前端代码的编译
@@ -124,4 +125,37 @@ v20.18.0
 
 npm --version
 10.9.0
+```
+
+## Docker 部署
+
+部署结构：
+
+```
+api_mock_server$ tree -L 2
+.
+├── docker-compose.yaml
+└── projects
+    ├── app.js
+    ├── config
+    ├── controllers
+    ├── Dockerfile
+    ├── docs
+    ├── frontend
+    ├── middleware
+    ├── models
+    ├── node_modules
+    ├── package.json
+    ├── package-lock.json
+    ├── public_static
+    └── routes
+```
+
+```
+# 把 DockerFile 拷贝到 app.js 同级，执行 build 命令
+sudo docker build --no-cache  -t mock_rest_server .
+
+# 进入到 docker-compose.yaml 同级目录。
+
+sudo docker compose up -d
 ```
