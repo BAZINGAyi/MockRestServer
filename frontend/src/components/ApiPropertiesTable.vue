@@ -28,12 +28,15 @@
         </tbody>
       </table>
 
+      <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
     </div>
   </template>
   
   <script>
   import ApiPropertyForm from './ApiPropertyForm.vue';
   import apiService from '../services/apiService';
+  import { Toast } from 'bootstrap'; // Import Bootstrap Toast
   
   export default {
     components: {
@@ -62,7 +65,7 @@
       async saveApiProperty(property) {
         await apiService.saveApiProperty(property);
         this.resetForm();
-        alert('API Property saved successfully');
+        this.showToast('API Property saved successfully', 'success');
         this.fetchApiProperties();
       },
 
@@ -75,15 +78,16 @@
         try {
           await apiService.deleteApiProperty(id);
           this.fetchApiProperties();
+          this.showToast('API Property deleted successfully', 'success');
         } catch (error) {
             // 如果 error response 存在，则提示 data 的内容
             console.log(error)
             if (error.response) {
                 // 将 error.response.data 转换为字符串
                 const data = JSON.stringify(error.response.data);
-                alert(`Error: ${error.response.statusText}, info: ${data}`);
+                this.showToast(`Error: ${error.response.statusText}, info: ${data}`, 'danger');
             } else {
-                alert(` Error: ${error.message}`);
+              this.showToast(`Error: ${error.message}`, 'danger');
             }
         }
         
@@ -92,6 +96,26 @@
       resetForm() {
         this.form = { id: null, propertyName: '', responseStatusCode: '', responseContent: '' };
       },
+
+      showToast(message, type) {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+
+        toast.innerHTML = `
+          <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        `;
+
+        toastContainer.appendChild(toast);
+        const toastInstance = new Toast(toast);
+        toastInstance.show();
+    },
 
     },
 

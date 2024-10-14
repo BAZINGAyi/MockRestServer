@@ -20,6 +20,13 @@ app.get('/p_*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public_static', 'index.html'));
 });
 
+// debug 
+app.use((req, res, next) => {
+    console.log(`Received request for: ${req.url}`);
+    console.log(`Request method: ${req.method}`);
+    next(); // 继续处理请求
+});
+
 // service api
 app.use(bodyParser.json());
 app.use('/i_api', apiRoutes);

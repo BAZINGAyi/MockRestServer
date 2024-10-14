@@ -15,6 +15,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const routes = [
+  { path: '/', redirect: '/p_apis' },
   { path: '/p_apis', component: ApiTable },
   { path: '/p_api-properties', component: ApiPropertiesTable }
 ];

@@ -67,7 +67,7 @@ exports.updateApi = async (req, res) => {
             return res.status(200).json(updatedApi);
         }
 
-        res.status(404).json({ message: 'API not found' });
+        res.status(404).json({ message: 'API update failed' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

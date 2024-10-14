@@ -1,6 +1,25 @@
 <template>
   <div>
     <!-- <ApiForm :form="form" @save="saveApi" /> -->
+
+        <!-- 模态框 -->
+      <div class="modal fade" id="dryRunModal" tabindex="-1" aria-labelledby="dryRunModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="dryRunModalLabel">Dry Run Result</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            {{ dryRunMessage }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <h2>API Mock List</h2>
     <ApiForm ref="apiForm" :form="form" @save="saveApi" />
     <table class="table table-striped mt-4">
@@ -35,16 +54,22 @@
           <td>
             <button class="btn btn-primary btn-sm"  @click="editApi(api)">Edit</button>
             <button class="btn btn-danger btn-sm"  @click="deleteApi(api.id)">Delete</button>
+            <button class="btn btn-info btn-sm" @click="dryRunApi(api)">Dry Run</button>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
   </div>
 </template>
 
 <script>
 import ApiForm from './ApiForm.vue';
 import apiService from '../services/apiService';
+import { Modal, Toast} from 'bootstrap';
 
 export default {
   components: {
@@ -60,7 +85,8 @@ export default {
         url: '',
         method: '',
         description: ''
-      }
+      },
+      dryRunMessage: '' // 保存 Dry Run 的结果消息
     };
   },
   methods: {
@@ -73,25 +99,14 @@ export default {
       this.properties = response.data;
     },
     async saveApi(api) {
-      // await apiService.saveApi(api);
-      // this.resetForm();
-      // alert('API saved successfully');
-      // this.fetchApis();
-
       try {
         const response = await apiService.saveApi(api);
+        this.resetForm();
         console.log(response);
-        alert('API saved successfully');
+        this.showToast('API saved successfully', 'success');
         this.fetchApis();
       } catch (error) {
-        // 如果 error response 存在，则提示 data 的内容
-        if (error.response) {
-          // 将 error.response.data 转换为字符串
-          const data = JSON.stringify(error.response.data);
-          alert(`Error: ${error.response.statusText}, info: ${data}`);
-        } else {
-          alert(`Error: ${error.message}`);
-        }
+        this.handleError(error);
         this.fetchApis();
       }
 
@@ -103,17 +118,10 @@ export default {
     async deleteApi(id) {
       try {
         await apiService.deleteApi(id);
-        alert('API deleted successfully');
+        this.showToast('API deleted successfully', 'success');
         this.fetchApis();
       } catch (error) {
-        // 如果 error response 存在，则提示 data 的内容
-        if (error.response) {
-          // 将 error.response.data 转换为字符串
-          const data = JSON.stringify(error.response.data);
-          alert(`Error: ${error.response.statusText}, info: ${data}`);
-        } else {
-          alert(`Error: ${error.message}`);
-        }
+        this.handleError(error);
         this.fetchApis();
       }
 
@@ -126,18 +134,11 @@ export default {
       try {
         const response = await apiService.bindProperty(api.id, propertyId);
         console.log(response);
-        alert('Property bound successfully');
+        this.showToast('Property bound successfully', 'success');
         this.fetchApis();
         
       } catch (error) {
-        // 如果 error response 存在，则提示 data 的内容
-        if (error.response) {
-          // 将 error.response.data 转换为字符串
-          const data = JSON.stringify(error.response.data);
-          alert(`Error: ${error.response.statusText}, info: ${data}`);
-        } else {
-          alert(`Error: ${error.message}`);
-        }
+        this.handleError(error);
         this.fetchApis();
       }
     },
@@ -145,24 +146,83 @@ export default {
       try {
         const response = await apiService.unbindProperty(api.id);
         console.log(response);
-        alert('Property unbound successfully');
+        this.showToast('Property unbound successfully', 'success');
         api.propertyId = null;
         this.fetchApis();
       } catch (error) {
-        // 如果 error response 存在，则提示 data 的内容
-        if (error.response) {
-          // 将 error.response.data 转换为字符串
-          const data = JSON.stringify(error.response.data);
-          alert(`Error: ${error.response.statusText}, info: ${data}`);
-        } else {
-          alert(`Error: ${error.message}`);
-        }
+        this.handleError(error);
         this.fetchApis();
       }
     },
+    
+    async dryRunApi(api) {        
+      const url_name = api.name;
+      try {
+        const response = await apiService.dryrunApi(api);
+        console.log(response);
+        this.showModal(url_name, response); // 显示模态框
+      } catch (error) {
+        if (error.response) {
+          this.showModal(url_name, error.response)
+        } else {
+          this.dryRunMessage = `Dry Run Error: ${error.message}`;
+          alert(this.dryRunMessage);
+        }
+      }
+    },
+
+    showModal(url_name, response) {
+      // 使用模态框显示结果
+      console.log(response);
+      const formattedData = JSON.stringify(response.data, null, 2); // 格式化JSON数据，缩进为2个空格
+      const statusCode = response.status;
+      const modalElement = document.getElementById('dryRunModal');
+      const modalBody = modalElement.querySelector('.modal-body');
+      
+      modalBody.innerHTML = `
+        <strong>API Name:</strong> ${url_name} <br><br>
+        <strong>Status Code:</strong> ${statusCode} <br><br>
+        <strong>Response:</strong> <br>
+        <pre>${formattedData}</pre>
+      `;
+
+      const modal = new Modal(document.getElementById('dryRunModal'));
+      modal.show();
+    },
+
+    handleError(error) {
+      if (error.response) {
+        const data = JSON.stringify(error.response.data);
+        this.showToast(`Error: ${error.response.statusText}, info: ${data}`, 'danger');
+      } else {
+        this.showToast(`Error: ${error.message}`, 'danger');
+      }
+    },
+
     resetForm() {
       this.form = { id: null, name: '', description: '' };
+    },
+
+    showToast(message, type = 'success') {
+      const toastContainer = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-white bg-${type} border-0`;
+      toast.setAttribute('role', 'alert');
+      toast.setAttribute('aria-live', 'assertive');
+      toast.setAttribute('aria-atomic', 'true');
+
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      `;
+
+      toastContainer.appendChild(toast);
+      const bsToast = new Toast(toast);
+      bsToast.show();
     }
+    
   },
   mounted() {
     this.fetchApis();

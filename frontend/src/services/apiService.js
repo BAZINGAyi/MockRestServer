@@ -49,5 +49,26 @@ export default {
 
   deleteApiProperty(id) {
     return apiClient.delete(`/api-properties/${id}`);
+  },
+
+  dryrunApi(api) {
+    const apiClient = axios.create({
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (api.method === 'GET') {
+      return apiClient.get(api.url);
+
+    } else if (api.method === 'POST') {
+      return apiClient.post(api.url, api);
+
+    } else if (api.method === 'PUT') {
+      return apiClient.put(api.url, api);
+
+    } else if (api.method === 'DELETE') {
+      return apiClient.delete(api.url);
+    }
   }
 };

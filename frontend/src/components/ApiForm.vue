@@ -1,8 +1,14 @@
 <!-- frontend/src/components/ApiForm.vue -->
   <template>
     <div>
-      <button class="btn btn-primary mb-3" @click="openModal">Add New Mock API</button>
-  
+    <!-- 使用 flexbox 对按钮进行居中 -->
+    <div class="d-flex justify-content-start mb-5">
+  <!-- Add a container div with margin-right to control the distance from the edge -->
+  <div class="ms-0">
+    <button class="btn btn-dark" @click="openModal">Add New Mock API</button>
+  </div>
+</div>
+
       <!-- Modal -->
       <div class="modal fade" id="apiModal" tabindex="-1" aria-labelledby="apiModalLabel" aria-hidden="true" ref="apiModal">
         <div class="modal-dialog">
@@ -20,6 +26,7 @@
                 <div class="form-group">
                 <label for="url">URL:</label>
                 <input type="text" class="form-control" v-model="localForm.url" placeholder="URL" required />
+                <small v-if="urlError" class="text-danger">{{ urlError }}</small>
                 </div>
                 <div class="form-group">
                   <label for="method">Method:</label>
@@ -59,7 +66,8 @@
     data() {
       return {
         localForm: { ...this.form },
-        modalInstance: null
+        modalInstance: null,
+        urlError: ''  // URL 校验错误信息
       };
     },
     watch: {
@@ -72,9 +80,25 @@
     },
     methods: {
       submitForm() {
+        if (!this.validateUrl()) {
+            return; // 如果 URL 无效，阻止提交
+        }
         this.$emit('save', this.localForm);
         this.closeModal();
       },
+
+      validateUrl() {
+        const urlPattern = /^[a-zA-Z0-9_\-+/]+$/;
+
+        if (!urlPattern.test(this.localForm.url)) {
+          this.urlError = 'Please enter a valid URL.';
+          return false;
+        } else {
+          this.urlError = ''; // 清除错误信息
+          return true;
+        }
+      },
+
       openModal(form = null) {
         if (form) {
           this.localForm = { ...form };

@@ -1,6 +1,9 @@
 <template>
     <div>
-      <button class="btn btn-primary mb-3" @click="openModal">Add New Api Property</button>
+
+    <div class="d-flex justify-contentstart mb-3">
+      <button class="btn btn-dark" @click="openModal">Add New Api Property</button>
+    </div>
   
       <!-- Modal -->
       <div class="modal fade" id="propertyModal" tabindex="-1" aria-labelledby="propertyModalLabel" aria-hidden="true" ref="propertyModal">
